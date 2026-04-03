@@ -123,7 +123,9 @@ public class IcebergTableOperations {
   public Response listTable(
       @AuthorizationMetadata(type = Entity.EntityType.CATALOG) @PathParam("prefix") String prefix,
       @AuthorizationMetadata(type = EntityType.SCHEMA) @Encoded() @PathParam("namespace")
-          String namespace) {
+          String namespace,
+      @QueryParam("pageToken") String pageToken,
+      @QueryParam("pageSize") Integer pageSize) {
     String catalogName = IcebergRESTUtils.getCatalogName(prefix);
     Namespace icebergNS = RESTUtil.decodeNamespace(namespace);
     LOG.info("List Iceberg tables, catalog: {}, namespace: {}", catalogName, icebergNS);
@@ -142,6 +144,8 @@ public class IcebergTableOperations {
                   filterListTablesResponse(
                       listTablesResponse, authContext.metalakeName(), catalogName);
             }
+            listTablesResponse =
+                IcebergPaginationHelper.paginateTables(listTablesResponse, pageToken, pageSize);
             return IcebergRESTUtils.ok(listTablesResponse);
           });
     } catch (Exception e) {

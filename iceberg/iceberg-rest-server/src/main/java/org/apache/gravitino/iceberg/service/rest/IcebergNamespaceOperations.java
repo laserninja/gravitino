@@ -101,7 +101,9 @@ public class IcebergNamespaceOperations {
       accessMetadataType = MetadataObject.Type.CATALOG)
   public Response listNamespaces(
       @DefaultValue("") @Encoded() @QueryParam("parent") String parent,
-      @AuthorizationMetadata(type = Entity.EntityType.CATALOG) @PathParam("prefix") String prefix) {
+      @AuthorizationMetadata(type = Entity.EntityType.CATALOG) @PathParam("prefix") String prefix,
+      @QueryParam("pageToken") String pageToken,
+      @QueryParam("pageSize") Integer pageSize) {
     String catalogName = IcebergRESTUtils.getCatalogName(prefix);
     Namespace parentNamespace =
         parent.isEmpty() ? Namespace.empty() : RESTUtil.decodeNamespace(parent);
@@ -121,6 +123,7 @@ public class IcebergNamespaceOperations {
               response =
                   filterListNamespacesResponse(response, authContext.metalakeName(), catalogName);
             }
+            response = IcebergPaginationHelper.paginateNamespaces(response, pageToken, pageSize);
             return IcebergRESTUtils.ok(response);
           });
     } catch (Exception e) {
